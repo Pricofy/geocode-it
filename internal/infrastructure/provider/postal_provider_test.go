@@ -3,7 +3,7 @@ package provider
 import (
 	"testing"
 
-	"github.com/pricofy/geocode-es/internal/domain"
+	"github.com/pricofy/geocode-it/internal/domain"
 )
 
 func TestPostalCodeProvider_GeocodeByPostalCode(t *testing.T) {
@@ -16,14 +16,14 @@ func TestPostalCodeProvider_GeocodeByPostalCode(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:        "valid postal code - Madrid",
-			postalCode:  "28001",
+			name:        "valid postal code - Rome",
+			postalCode:  "00118",
 			wantSuccess: true,
 			wantErr:     false,
 		},
 		{
-			name:        "valid postal code - Barcelona",
-			postalCode:  "08001",
+			name:        "valid postal code - Milan",
+			postalCode:  "20121",
 			wantSuccess: true,
 			wantErr:     false,
 		},
@@ -74,34 +74,34 @@ func TestPostalCodeProvider_GeocodeByMunicipality(t *testing.T) {
 	p := NewPostalCodeProvider()
 
 	tests := []struct {
-		name        string
+		name         string
 		municipality string
-		wantSuccess bool
-		wantErr     bool
+		wantSuccess  bool
+		wantErr      bool
 	}{
 		{
-			name:         "valid municipality - Madrid",
-			municipality: "Madrid",
-			wantSuccess: true,
-			wantErr:     false,
+			name:         "valid municipality - Rome",
+			municipality: "Roma",
+			wantSuccess:  true,
+			wantErr:      false,
 		},
 		{
-			name:         "valid municipality - Barcelona",
-			municipality: "Barcelona",
-			wantSuccess: true,
-			wantErr:     false,
+			name:         "valid municipality - Milan",
+			municipality: "Milano",
+			wantSuccess:  true,
+			wantErr:      false,
 		},
 		{
 			name:         "invalid municipality",
 			municipality: "NonExistentCity",
-			wantSuccess: false,
-			wantErr:     true,
+			wantSuccess:  false,
+			wantErr:      true,
 		},
 		{
-			name:        "case insensitive",
-			municipality: "madrid",
-			wantSuccess: true,
-			wantErr:     false,
+			name:         "case insensitive",
+			municipality: "roma",
+			wantSuccess:  true,
+			wantErr:      false,
 		},
 	}
 
@@ -139,23 +139,23 @@ func TestPostalCodeProvider_ReverseGeocode(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:        "Madrid coordinates",
-			lat:         40.4168,
-			lon:         -3.7038,
+			name:        "Rome coordinates",
+			lat:         41.8919,
+			lon:         12.5113,
 			wantSuccess: true,
 			wantErr:     false,
 		},
 		{
-			name:        "Barcelona coordinates",
-			lat:         41.3851,
-			lon:         2.1734,
+			name:        "Milan coordinates",
+			lat:         45.4643,
+			lon:         9.1895,
 			wantSuccess: true,
 			wantErr:     false,
 		},
 		{
-			name:        "Valid coordinates in Spain",
-			lat:         39.4765,
-			lon:         -6.3722,
+			name:        "Valid coordinates in Italy",
+			lat:         43.7696,
+			lon:         11.2558,
 			wantSuccess: true,
 			wantErr:     false,
 		},
@@ -200,7 +200,7 @@ func TestPostalCodeProvider_ValidatePostalCode(t *testing.T) {
 	}{
 		{
 			name:       "valid postal code",
-			postalCode: "28001",
+			postalCode: "00118",
 			want:       true,
 		},
 		{
@@ -229,24 +229,24 @@ func TestPostalCodeProvider_ValidateMunicipality(t *testing.T) {
 	p := NewPostalCodeProvider()
 
 	tests := []struct {
-		name      string
+		name         string
 		municipality string
-		want      bool
+		want         bool
 	}{
 		{
 			name:         "valid municipality",
-			municipality: "Madrid",
-			want:      true,
+			municipality: "Roma",
+			want:         true,
 		},
 		{
-			name:      "case insensitive",
-			municipality: "madrid",
-			want:      true,
+			name:         "case insensitive",
+			municipality: "roma",
+			want:         true,
 		},
 		{
 			name:         "invalid municipality",
 			municipality: "NonExistentCity",
-			want:      false,
+			want:         false,
 		},
 	}
 
@@ -271,22 +271,22 @@ func TestPostalCodeProvider_AutocompletePostalCode(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name:      "prefix 280",
-			prefix:    "280",
+			name:      "prefix 00",
+			prefix:    "00",
 			limit:     10,
 			wantCount: 10,
 			wantErr:   false,
 		},
 		{
-			name:      "prefix 08",
-			prefix:    "08",
+			name:      "prefix 20",
+			prefix:    "20",
 			limit:     5,
 			wantCount: 5,
 			wantErr:   false,
 		},
 		{
 			name:      "non-existent prefix",
-			prefix:    "99",
+			prefix:    "999",
 			limit:     10,
 			wantCount: 0,
 			wantErr:   false,
@@ -323,22 +323,22 @@ func TestPostalCodeProvider_AutocompleteMunicipality(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name:      "query 'mad'",
-			query:     "mad",
+			name:      "query 'Rom'",
+			query:     "Rom",
 			limit:     10,
 			wantCount: 10,
 			wantErr:   false,
 		},
 		{
-			name:      "query 'bar'",
-			query:     "bar",
+			name:      "query 'Mil'",
+			query:     "Mil",
 			limit:     5,
 			wantCount: 5,
 			wantErr:   false,
 		},
 		{
 			name:      "case insensitive",
-			query:     "MAD",
+			query:     "ROM",
 			limit:     10,
 			wantCount: 10,
 			wantErr:   false,
@@ -370,25 +370,25 @@ func TestPostalCodeProvider_CalculateDistance(t *testing.T) {
 	p := NewPostalCodeProvider()
 
 	// Test Haversine distance calculation
-	// Madrid coordinates
-	madridLat, madridLon := 40.4168, -3.7038
-	barcelonaLat, barcelonaLon := 41.3851, 2.1734
+	// Rome coordinates
+	romeLat, romeLon := 41.8919, 12.5113
+	milanLat, milanLon := 45.4643, 9.1895
 
-	_, dist, err := p.ReverseGeocode(madridLat, madridLon)
+	_, dist, err := p.ReverseGeocode(romeLat, romeLon)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	_, dist2, err := p.ReverseGeocode(barcelonaLat, barcelonaLon)
+	_, dist2, err := p.ReverseGeocode(milanLat, milanLon)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
 	// Distance should be reasonable (not negative, not too large)
 	if dist < 0 || dist > 1000 {
-		t.Errorf("Distance from Madrid seems incorrect: %f km", dist)
+		t.Errorf("Distance from Rome seems incorrect: %f km", dist)
 	}
 	if dist2 < 0 || dist2 > 1000 {
-		t.Errorf("Distance from Barcelona seems incorrect: %f km", dist2)
+		t.Errorf("Distance from Milan seems incorrect: %f km", dist2)
 	}
 }

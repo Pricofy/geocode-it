@@ -1,14 +1,14 @@
 /**
- * CDK tests for Geocode ES Stack
+ * CDK tests for Geocode IT Stack
  */
 
 import * as cdk from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
-import { GeocodeEsStack } from '../lib/geocode-es-stack';
+import { GeocodeItStack } from '../lib/geocode-it-stack';
 
-describe('Geocode ES Stack', () => {
+describe('Geocode IT Stack', () => {
   let app: cdk.App;
-  let stack: GeocodeEsStack;
+  let stack: GeocodeItStack;
   let template: Template;
 
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe('Geocode ES Stack', () => {
     }
 
     app = new cdk.App();
-    stack = new GeocodeEsStack(app, 'TestStack', {
+    stack = new GeocodeItStack(app, 'TestStack', {
       env: { account: 'test-account', region: 'eu-west-1' },
       environment: 'dev',
     });
@@ -40,7 +40,7 @@ describe('Geocode ES Stack', () => {
 
   it('should create Lambda with proper naming', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
-      FunctionName: 'pricofy-geocode-es',
+      FunctionName: 'pricofy-geocode-it',
     });
   });
 

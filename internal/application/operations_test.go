@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/pricofy/geocode-es/internal/domain"
+	"github.com/pricofy/geocode-it/internal/domain"
 )
 
 func TestValidateMunicipioOperation(t *testing.T) {

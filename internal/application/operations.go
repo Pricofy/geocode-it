@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pricofy/geocode-es/internal/domain"
-	"github.com/pricofy/geocode-es/internal/shared/logger"
+	"github.com/pricofy/geocode-it/internal/domain"
+	"github.com/pricofy/geocode-it/internal/shared/logger"
 )
 
 // operationsLogger is the logger instance for the operations
