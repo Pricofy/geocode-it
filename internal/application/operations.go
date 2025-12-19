@@ -212,8 +212,11 @@ func handleGeocodeError(err error, defaultMessage string) (domain.LambdaResponse
 	case *domain.PostalCodeNotFoundError:
 		body, _ := json.Marshal(map[string]interface{}{
 			"success": false,
-			"error":   "Postal code or municipality not found",
-			"hint":    "Please provide a valid Spanish postal code (e.g., \"28001\") or municipality name (e.g., \"Madrid\")",
+			"error": map[string]interface{}{
+				"code":    "NOT_FOUND",
+				"message": "Postal code or municipality not found",
+			},
+			"hint": "Please provide a valid Spanish postal code (e.g., \"28001\") or municipality name (e.g., \"Madrid\")",
 		})
 		return domain.LambdaResponse{
 			StatusCode: 404,
@@ -223,7 +226,10 @@ func handleGeocodeError(err error, defaultMessage string) (domain.LambdaResponse
 	case *domain.InvalidCoordinatesError, *domain.ValidationError:
 		body, _ := json.Marshal(map[string]interface{}{
 			"success": false,
-			"error":   e.Error(),
+			"error": map[string]interface{}{
+				"code":    "VALIDATION_ERROR",
+				"message": e.Error(),
+			},
 		})
 		return domain.LambdaResponse{
 			StatusCode: 400,
@@ -243,7 +249,10 @@ func handleReverseGeocodeError(err error, defaultMessage string) (domain.LambdaR
 	case *domain.InvalidCoordinatesError, *domain.ValidationError:
 		body, _ := json.Marshal(map[string]interface{}{
 			"success": false,
-			"error":   e.Error(),
+			"error": map[string]interface{}{
+				"code":    "VALIDATION_ERROR",
+				"message": e.Error(),
+			},
 		})
 		return domain.LambdaResponse{
 			StatusCode: 400,
@@ -253,7 +262,10 @@ func handleReverseGeocodeError(err error, defaultMessage string) (domain.LambdaR
 	case *domain.PostalCodeNotFoundError:
 		body, _ := json.Marshal(map[string]interface{}{
 			"success": false,
-			"error":   "No postal code found",
+			"error": map[string]interface{}{
+				"code":    "NOT_FOUND",
+				"message": "No postal code found",
+			},
 		})
 		return domain.LambdaResponse{
 			StatusCode: 404,
@@ -279,7 +291,10 @@ func handleValidationError(err error, defaultMessage string) (domain.LambdaRespo
 			body, _ := json.Marshal(map[string]interface{}{
 				"results": []interface{}{},
 				"count":   0,
-				"error":   e.Error(),
+				"error": map[string]interface{}{
+					"code":    "VALIDATION_ERROR",
+					"message": e.Error(),
+				},
 			})
 			return domain.LambdaResponse{
 				StatusCode: 400,
@@ -289,7 +304,10 @@ func handleValidationError(err error, defaultMessage string) (domain.LambdaRespo
 		// For validate operations, return valid: false format
 		body, _ := json.Marshal(map[string]interface{}{
 			"valid": false,
-			"error": e.Error(),
+			"error": map[string]interface{}{
+				"code":    "VALIDATION_ERROR",
+				"message": e.Error(),
+			},
 		})
 		return domain.LambdaResponse{
 			StatusCode: 400,
@@ -300,13 +318,17 @@ func handleValidationError(err error, defaultMessage string) (domain.LambdaRespo
 		// For autocomplete, return results: [] format even on internal errors
 		if contains(defaultMessage, "autocomplete") {
 			isDev := os.Getenv("ENVIRONMENT") == "dev"
+			errorObj := map[string]interface{}{
+				"code":    "INTERNAL_ERROR",
+				"message": "Internal server error",
+			}
+			if isDev && err != nil {
+				errorObj["details"] = err.Error()
+			}
 			responseBody := map[string]interface{}{
 				"results": []interface{}{},
 				"count":   0,
-				"error":   "Internal server error",
-			}
-			if isDev && err != nil {
-				responseBody["details"] = err.Error()
+				"error":   errorObj,
 			}
 			body, _ := json.Marshal(responseBody)
 			return domain.LambdaResponse{
@@ -327,13 +349,18 @@ func contains(s, substr string) bool {
 func handleInternalError(err error, _ string) (domain.LambdaResponse, error) {
 	isDev := os.Getenv("ENVIRONMENT") == "dev"
 
-	responseBody := map[string]interface{}{
-		"success": false,
-		"error":   "Internal server error",
+	errorObj := map[string]interface{}{
+		"code":    "INTERNAL_ERROR",
+		"message": "Internal server error",
 	}
 
 	if isDev && err != nil {
-		responseBody["details"] = err.Error()
+		errorObj["details"] = err.Error()
+	}
+
+	responseBody := map[string]interface{}{
+		"success": false,
+		"error":   errorObj,
 	}
 
 	body, _ := json.Marshal(responseBody)

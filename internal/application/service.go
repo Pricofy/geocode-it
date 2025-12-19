@@ -422,3 +422,58 @@ func (s *PostalCodeService) parseAutocompleteInput(event domain.LambdaEvent, isP
 
 	return value, limit, nil
 }
+
+// GeocodeMunicipalitiesBatch geocodes multiple municipalities in a single batch operation.
+//
+// Takes an array of municipality names and returns geocoding results for each one.
+// Uses the in-memory municipality index for O(1) lookups per municipality.
+//
+// Performance: O(n) where n is the number of municipalities.
+//
+// Parameters:
+//   - event: LambdaEvent containing municipalities array in the body
+//
+// Returns:
+//   - BatchGeocodingResponse with results map and metadata
+//   - error if input parsing fails or municipalities array is empty
+func (s *PostalCodeService) GeocodeMunicipalitiesBatch(event domain.LambdaEvent) (domain.BatchGeocodingResponse, error) {
+	var body domain.RequestBody
+	if err := json.Unmarshal([]byte(event.Body), &body); err != nil {
+		serviceLogger.Error(errorMessageFailedToParseRequestBody, err, nil)
+		return domain.BatchGeocodingResponse{}, domain.NewValidationError(errorMessageInvalidJSONInRequestBody, "body")
+	}
+
+	if len(body.Municipalities) == 0 {
+		return domain.BatchGeocodingResponse{}, domain.NewValidationError("municipalities array is required and must not be empty", "municipalities")
+	}
+
+	serviceLogger.Debug("Batch geocoding municipalities", map[string]interface{}{
+		"count": len(body.Municipalities),
+	})
+
+	results := s.provider.GeocodeByMunicipalitiesBatch(body.Municipalities)
+
+	// Count successful geocodes
+	foundCount := 0
+	var errors []string
+	for municipality, result := range results {
+		if result != nil && result.Found {
+			foundCount++
+		} else {
+			errors = append(errors, municipality)
+		}
+	}
+
+	serviceLogger.Info("Batch geocoding completed", map[string]interface{}{
+		"requested": len(body.Municipalities),
+		"found":     foundCount,
+		"notFound":  len(errors),
+	})
+
+	return domain.BatchGeocodingResponse{
+		Success: true,
+		Results: results,
+		Count:   foundCount,
+		Errors:  errors,
+	}, nil
+}
